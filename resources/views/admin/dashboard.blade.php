@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'ទំព័រដើម')
+@section('title', 'Click Shop')
 
 @section('styles')
 <style>
@@ -47,7 +47,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-sm-6 col-xl-3">
         <div class="card h-100 kpi-card">
             <div class="card-body">

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'កែប្រែផលិតផល')
+@section('title', 'Click Shop')
 
 @section('content')
 <div class="mb-4">

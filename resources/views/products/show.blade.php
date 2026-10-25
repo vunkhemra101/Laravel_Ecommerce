@@ -17,7 +17,7 @@
         <div class="col-md-6 mb-4 mb-md-0">
             <img src="{{ isset($product->image) && $product->image ? asset('assets/uploads/products/' . $product->image) : 'https://via.placeholder.com/500' }}" class="img-fluid rounded w-100 object-fit-cover" alt="{{ $product->name ?? '' }}" style="max-height: 500px;">
         </div>
-        
+
         <!-- Product Details -->
         <div class="col-md-6">
             @if($product->category ?? false)
@@ -25,9 +25,9 @@
             @endif
             <h2 class="fw-bold mb-3">{{ $product->name ?? 'ឈ្មោះផលិតផល' }}</h2>
             <h3 class="text-danger fw-bold mb-3">${{ number_format($product->price ?? 0, 2) }}</h3>
-            
+
             <div class="mb-3 text-muted">
-                <i class="bi bi-box-seam me-1"></i> ស្តុកដែលមាន: 
+                <i class="bi bi-box-seam me-1"></i> ស្តុកដែលមាន:
                 <span class="fw-bold {{ ($product->stock_qty ?? 0) > 0 ? 'text-success' : 'text-danger' }}">{{ $product->stock_qty ?? 0 }}</span>
             </div>
 
@@ -35,7 +35,7 @@
                 <p>{{ $product->description ?? 'មិនមានការពិពណ៌នា។' }}</p>
             </div>
 
-            <form action="{{ route('cart.add') }}" method="POST" id="addToCartForm">
+            <form id="addToCartForm" data-ajax="true">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 @if($product->size)
@@ -59,9 +59,19 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary-theme btn-lg px-5 py-3 w-100 rounded-pill" {{ ($product->stock_qty ?? 0) <= 0 ? 'disabled' : '' }}>
-                    <i class="bi bi-cart-plus fs-5 me-2"></i> 
-                    {{ ($product->stock_qty ?? 0) > 0 ? 'បន្ថែមទៅកន្ត្រក' : 'អស់ពីស្តុក' }}
+                <button type="submit" class="btn btn-primary-theme btn-lg px-5 py-3 w-100 rounded-pill" id="addToCartBtn" {{ ($product->stock_qty ?? 0) <= 0 ? 'disabled' : '' }}>
+                    <span class="btn-content">
+                        <i class="bi bi-cart-plus fs-5 me-2"></i>
+                        {{ ($product->stock_qty ?? 0) > 0 ? 'បន្ថែមទៅកន្ត្រក' : 'អស់ពីស្តុក' }}
+                    </span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        កំពុងបន្ថែម...
+                    </span>
+                    <span class="btn-success-state" style="display: none;">
+                        <i class="bi bi-check-circle-fill fs-5 me-2"></i>
+                        បានបន្ថែមរួចហើយ!
+                    </span>
                 </button>
             </form>
         </div>
@@ -98,6 +108,42 @@
     @endif
 </div>
 
+<style>
+    #addToCartBtn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    #addToCartBtn.success {
+        background-color: #059669 !important;
+        border-color: #059669 !important;
+    }
+    #addToCartBtn .btn-content,
+    #addToCartBtn .btn-loading,
+    #addToCartBtn .btn-success-state {
+        transition: opacity 0.2s ease;
+    }
+    .product-card, .feature-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .product-card:hover, .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Cart badge pop animation */
+    @keyframes badgePop {
+        0%   { transform: translate(-50%, -50%) scale(1); }
+        50%  { transform: translate(-50%, -50%) scale(1.5); }
+        100% { transform: translate(-50%, -50%) scale(1); }
+    }
+    .badge-pop {
+        animation: badgePop 0.4s ease;
+    }
+</style>
+@endsection
+
+@section('scripts')
 <script>
     function incrementQty() {
         let input = document.getElementById('quantity');
@@ -112,5 +158,75 @@
             input.value = parseInt(input.value) - 1;
         }
     }
+
+    // ===== AJAX Add to Cart =====
+    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const btn = document.getElementById('addToCartBtn');
+        const btnContent = btn.querySelector('.btn-content');
+        const btnLoading = btn.querySelector('.btn-loading');
+        const btnSuccess = btn.querySelector('.btn-success-state');
+        const formData = new FormData(this);
+
+        // Show loading state
+        btn.disabled = true;
+        btnContent.style.display = 'none';
+        btnLoading.style.display = 'inline';
+
+        fetch('{{ route("cart.add") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, 'error');
+                // Revert button
+                btnLoading.style.display = 'none';
+                btnContent.style.display = 'inline';
+                btn.disabled = false;
+                return;
+            }
+
+            // Show success state on button
+            btnLoading.style.display = 'none';
+            btnSuccess.style.display = 'inline';
+            btn.classList.add('success');
+
+            // Update cart badge in navbar
+            const badge = document.getElementById('cartBadge');
+            if (badge && data.cart_count !== undefined) {
+                // Calculate total items from cart_count (number of unique items)
+                // We need total quantity — let's compute from what we know
+                badge.textContent = data.cart_count;
+                badge.style.display = '';
+                badge.classList.remove('badge-pop');
+                void badge.offsetWidth;
+                badge.classList.add('badge-pop');
+            }
+
+            showToast('ផលិតផលត្រូវបានបន្ថែមទៅកន្ត្រក!', 'success');
+
+            // Revert button after 2 seconds
+            setTimeout(() => {
+                btnSuccess.style.display = 'none';
+                btnContent.style.display = 'inline';
+                btn.classList.remove('success');
+                btn.disabled = false;
+            }, 2000);
+        })
+        .catch(() => {
+            showToast('មានបញ្ហាក្នុងការបន្ថែមទៅកន្ត្រក', 'error');
+            btnLoading.style.display = 'none';
+            btnContent.style.display = 'inline';
+            btn.disabled = false;
+        });
+    });
 </script>
 @endsection

@@ -31,7 +31,7 @@ class CartController extends Controller
         $product = Product::findOrFail($request->product_id);
         
         if ($product->stock_qty < $request->quantity) {
-            if ($request->ajax()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['error' => 'Not enough stock'], 400);
             }
             return back()->with('error', 'Not enough stock available');
@@ -57,10 +57,14 @@ class CartController extends Controller
 
         Session::put('cart', $cart);
 
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->wantsJson()) {
+            $totalQty = 0;
+            foreach ($cart as $item) {
+                $totalQty += $item['quantity'];
+            }
             return response()->json([
                 'success' => 'Item added to cart',
-                'cart_count' => count($cart)
+                'cart_count' => $totalQty
             ]);
         }
 
@@ -83,19 +87,19 @@ class CartController extends Controller
                 $cart[$request->cart_key]['quantity'] = $request->quantity;
                 Session::put('cart', $cart);
                 
-                if ($request->ajax()) {
+                if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => 'Cart updated successfully']);
                 }
                 return back()->with('success', 'Cart updated successfully');
             }
             
-            if ($request->ajax()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['error' => 'Not enough stock'], 400);
             }
             return back()->with('error', 'Not enough stock available');
         }
 
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['error' => 'Item not found in cart'], 404);
         }
         return back()->with('error', 'Item not found in cart');
@@ -113,13 +117,13 @@ class CartController extends Controller
             unset($cart[$request->cart_key]);
             Session::put('cart', $cart);
             
-            if ($request->ajax()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => 'Item removed from cart']);
             }
             return back()->with('success', 'Item removed from cart');
         }
 
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['error' => 'Item not found in cart'], 404);
         }
         return back()->with('error', 'Item not found in cart');

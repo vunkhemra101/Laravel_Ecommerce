@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'អ្នកប្រើប្រាស់')
+@section('title', 'Click Shop')
 
 @section('styles')
 <style>

@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\UserController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
 Route::get('/search', [SearchController::class, 'search'])->name('search.api');
+Route::get('/api/search', [SearchController::class, 'search']);
 
 // Cart Routes (Session based, open to all)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'ព័ត៌មានលម្អិតការបញ្ជាទិញ')
+@section('title', 'Click Shop')
 
 @section('content')
 <div class="mb-4 d-flex justify-content-between align-items-end">

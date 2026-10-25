@@ -18,16 +18,16 @@
         @csrf
         <div class="row">
             <!-- Shipping Details -->
-            <div class="col-lg-7 mb-4">
+            <div class="col-lg-7 mb-4">kt
                 <div class="card border-0 shadow-sm rounded h-100">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">ព័ត៌មានដឹកជញ្ជូន</h5>
-                        
+
                         <div class="mb-3">
                             <label for="name" class="form-label">ឈ្មោះពេញ <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" value="{{ old('name', Auth::check() ? Auth::user()->name : '') }}" required>
                         </div>
-                        
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="phone" class="form-label">លេខទូរស័ព្ទ <span class="text-danger">*</span></label>
@@ -60,7 +60,7 @@
                 <div class="card border-0 shadow-sm rounded">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">ការបញ្ជាទិញរបស់អ្នក</h5>
-                        
+
                         <div class="mb-4">
                             @php $total = 0; @endphp
                             @if(session('cart'))

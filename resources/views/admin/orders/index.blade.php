@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'ការបញ្ជាទិញ')
+@section('title', 'Click Shop')
 
 @section('styles')
 <style>
